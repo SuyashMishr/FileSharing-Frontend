@@ -26,7 +26,7 @@ function App() {
     data.append('file', file);
 
     try {
-      const res = await axios.post('https://filesharing-backend-khaki.vercel.app/upload', data, {
+      const res = await axios.post('https://filesharing-backend-t3ym.onrender.com/upload', data, {
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percent);
