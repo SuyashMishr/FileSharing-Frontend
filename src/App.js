@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import './App.css';
+import { uploadFile } from './service/api.js';
 
 // Helper function to format file size
 const formatFileSize = (bytes) => {
@@ -70,7 +71,7 @@ function App() {
     }
   });
 
-  const uploadFile = async () => {
+  const handleUpload = async () => {
     if (!file) return setError('Please drop or select a file first.');
     
     if (isLimitEnabled && (maxDownloads === "" || parseInt(maxDownloads) < 1)) {
@@ -83,24 +84,22 @@ function App() {
     const data = new FormData();
     data.append('file', file);
     
-    // Only send maxDownloads if limit is enabled
     if (isLimitEnabled) {
       data.append('maxDownloads', maxDownloads);
     }
 
     try {
-      const res = await axios.post('https://filesharing-backend-t3ym.onrender.com/upload', data, {
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        },
-      });
-      setUploadUrl(res.data.path);
-      // Extract file ID from the URL
-      const urlParts = res.data.path.split('/');
-      const id = urlParts[urlParts.length - 1];
-      setFileId(id);
-      setUploadProgress(100);
+      const result = await uploadFile(data);
+      if (result) {
+        setUploadUrl(result.path);
+        // Extract file ID from the URL
+        const urlParts = result.path.split('/');
+        const id = urlParts[urlParts.length - 1];
+        setFileId(id);
+        setUploadProgress(100);
+      } else {
+        setError('Upload failed. Please try again.');
+      }
     } catch (err) {
       console.error(err);
       setError('Upload failed. Please try again.');
@@ -227,7 +226,7 @@ function App() {
         )}
 
         <button
-          onClick={uploadFile}
+          onClick={handleUpload}
           disabled={!file || isUploading}
           className={isUploading ? 'pulse' : ''}
         >
