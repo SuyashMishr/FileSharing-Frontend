@@ -3,7 +3,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import './App.css';
-import { uploadFile } from './service/api.js';
 
 // Helper function to format file size
 const formatFileSize = (bytes) => {
@@ -47,10 +46,6 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [maxDownloads, setMaxDownloads] = useState("");
-  const [isLimitEnabled, setIsLimitEnabled] = useState(false);
-  const [fileId, setFileId] = useState(null);
-  const [fileStatus, setFileStatus] = useState(null);
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -58,8 +53,6 @@ function App() {
       setUploadUrl('');
       setError('');
       setUploadProgress(0);
-      setFileStatus(null);
-      setFileId(null);
     }
   }, []);
 
@@ -71,35 +64,24 @@ function App() {
     }
   });
 
-  const handleUpload = async () => {
+  const uploadFile = async () => {
     if (!file) return setError('Please drop or select a file first.');
-    
-    if (isLimitEnabled && (maxDownloads === "" || parseInt(maxDownloads) < 1)) {
-      return setError('Please set a valid download limit (minimum 1)');
-    }
 
     setIsUploading(true);
     setError('');
 
     const data = new FormData();
     data.append('file', file);
-    
-    if (isLimitEnabled) {
-      data.append('maxDownloads', maxDownloads);
-    }
 
     try {
-      const result = await uploadFile(data);
-      if (result) {
-        setUploadUrl(result.path);
-        // Extract file ID from the URL
-        const urlParts = result.path.split('/');
-        const id = urlParts[urlParts.length - 1];
-        setFileId(id);
-        setUploadProgress(100);
-      } else {
-        setError('Upload failed. Please try again.');
-      }
+      const res = await axios.post('https://filesharing-backend-t3ym.onrender.com/upload', data, {
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percent);
+        },
+      });
+      setUploadUrl(res.data.path);
+      setUploadProgress(100);
     } catch (err) {
       console.error(err);
       setError('Upload failed. Please try again.');
@@ -126,36 +108,6 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [copySuccess]);
-
-  // Handle max downloads input change
-  const handleMaxDownloadsChange = (e) => {
-    const value = e.target.value;
-    // Only allow positive integers
-    if (value === '' || /^[1-9][0-9]*$/.test(value)) {
-      setMaxDownloads(value);
-    }
-  };
-
-  // Toggle download limit
-  const toggleLimitEnabled = () => {
-    setIsLimitEnabled(!isLimitEnabled);
-    if (!isLimitEnabled && maxDownloads === "") {
-      setMaxDownloads("1"); // Default to 1 if no value is set
-    }
-  };
-
-  // Add a function to check file status
-  const checkFileStatus = async () => {
-    if (!fileId) return;
-    
-    try {
-      const response = await axios.get(`https://filesharing-backend-t3ym.onrender.com/file/${fileId}/status`);
-      setFileStatus(response.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to check file status');
-    }
-  };
 
   return (
     <>
@@ -200,33 +152,8 @@ function App() {
           </div>
         )}
 
-        {file && (
-          <div className="upload-options">
-            <label className="limit-option">
-              <input
-                type="checkbox"
-                checked={isLimitEnabled}
-                onChange={toggleLimitEnabled}
-              />
-              <span>Set download limit</span>
-            </label>
-            
-            {isLimitEnabled && (
-              <div className="download-limit-input">
-                <input
-                  type="text"
-                  value={maxDownloads}
-                  onChange={handleMaxDownloadsChange}
-                  placeholder="Number of downloads"
-                />
-                <span className="input-label">downloads</span>
-              </div>
-            )}
-          </div>
-        )}
-
         <button
-          onClick={handleUpload}
+          onClick={uploadFile}
           disabled={!file || isUploading}
           className={isUploading ? 'pulse' : ''}
         >
@@ -255,40 +182,10 @@ function App() {
             <p className="success-message">
               <span>✅</span> File uploaded successfully!
             </p>
-            
-            {fileStatus && fileStatus.expired ? (
-              <p className="expired-link">
-                <span>⚠️</span> This link has expired after reaching the download limit
-              </p>
-            ) : (
-              <>
-                <a href={uploadUrl} target="_blank" rel="noreferrer">{uploadUrl}</a>
-                
-                {fileStatus && fileStatus.maxDownloads && (
-                  <div className="download-status">
-                    <p>Downloads: {fileStatus.downloadCount} / {fileStatus.maxDownloads}</p>
-                    <div className="download-progress">
-                      <div 
-                        className="download-progress-bar" 
-                        style={{ width: `${(fileStatus.downloadCount / fileStatus.maxDownloads) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-                
-                {isLimitEnabled && !fileStatus && (
-                  <p className="limit-note">
-                    <span>ℹ️</span> This link will expire after {maxDownloads} download{maxDownloads !== "1" ? "s" : ""}
-                  </p>
-                )}
-                
-                <button onClick={copyToClipboard} className="copy-btn">
-                  {copySuccess ? '✅ Copied!' : '📋 Copy Link'}
-                </button>
-                
-              
-              </>
-            )}
+            <a href={uploadUrl} target="_blank" rel="noreferrer">{uploadUrl}</a>
+            <button onClick={copyToClipboard} className="copy-btn">
+              {copySuccess ? '✅ Copied!' : '📋 Copy Link'}
+            </button>
           </div>
         )}
       </div>
