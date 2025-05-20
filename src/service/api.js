@@ -1,7 +1,10 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+// For development vs production environments
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://filesharing-backend-t3ym.onrender.com'
+  : 'http://localhost:8000';
 
 export const uploadFile = async (data) => {
   try {
