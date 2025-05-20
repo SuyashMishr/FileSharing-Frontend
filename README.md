@@ -1,4 +1,8 @@
-# Client - File Sharing Frontend
+# Client - File Sharing Frontend  (https://file-sharing-frontend-six.vercel.app)
+## 🚀 Project Link
+
+[Click here to view the live project]((https://file-sharing-frontend-six.vercel.app))
+
 
 This project is a React-based frontend application for file sharing. It was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
