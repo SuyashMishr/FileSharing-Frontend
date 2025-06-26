@@ -45,7 +45,6 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [maxDownloads, setMaxDownloads] = useState('');
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -72,9 +71,6 @@ function App() {
 
     const data = new FormData();
     data.append('file', file);
-    if (maxDownloads) {
-      data.append('maxDownloads', maxDownloads);
-    }
 
     try {
       const res = await axios.post('https://filesharing-backend-t3ym.onrender.com/upload', data, {
@@ -130,7 +126,7 @@ function App() {
 
         <div
           {...getRootProps({
-            className: `dropzone ${isDragActive ? 'active' : ''}`
+            className: dropzone ${isDragActive ? 'active' : ''}
           })}
         >
           <input {...getInputProps()} />
@@ -155,21 +151,6 @@ function App() {
           </div>
         )}
 
-        {file && (
-          <div className="download-limit">
-            <label htmlFor="maxDownloads">🔢 Max Downloads (optional):</label>
-            <input
-              type="number"
-              id="maxDownloads"
-              placeholder="e.g. 3"
-              value={maxDownloads}
-              onChange={(e) => setMaxDownloads(e.target.value)}
-              min="1"
-              className="download-input"
-            />
-          </div>
-        )}
-
         <button
           onClick={uploadFile}
           disabled={!file || isUploading}
@@ -182,7 +163,7 @@ function App() {
           <div className="progress-bar-container">
             <div
               className="progress-bar"
-              style={{ width: `${uploadProgress}%` }}
+              style={{ width: ${uploadProgress}% }}
             >
               <span className="progress-text">{uploadProgress}%</span>
             </div>
@@ -207,8 +188,8 @@ function App() {
           </div>
         )}
       </div>
+
+   
     </>
   );
 }
-
-export default App;
