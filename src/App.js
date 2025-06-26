@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
@@ -126,7 +127,7 @@ function App() {
 
         <div
           {...getRootProps({
-            className: dropzone ${isDragActive ? 'active' : ''}
+            className: `dropzone ${isDragActive ? 'active' : ''}`
           })}
         >
           <input {...getInputProps()} />
@@ -163,7 +164,7 @@ function App() {
           <div className="progress-bar-container">
             <div
               className="progress-bar"
-              style={{ width: ${uploadProgress}% }}
+              style={{ width: `${uploadProgress}%` }}
             >
               <span className="progress-text">{uploadProgress}%</span>
             </div>
@@ -193,3 +194,6 @@ function App() {
     </>
   );
 }
+
+
+export default App;
